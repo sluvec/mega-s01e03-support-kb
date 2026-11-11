@@ -1,0 +1,88 @@
+---
+layout: runbook
+title: '#4471 split · one ticket per problem'
+owner: sluvec
+status: open
+reviewed: 2026-11-11
+signature: v1.eyJzdWIiOiIzOTkiLCJhdWQiOiJjaGFsbGVuZ2U6d2hhdC1pdC1zaG93cyIsImlhdCI6MTc5NDQyMzUxOCwiZXhwIjoxNzk0NTA5OTE4fQ.QrZc97rsvlG1dspoLH5VdLIZiVghFtyrZq1F7U5AlYY
+---
+
+<script>
+  import ProblemTable from '#lib/kb/ProblemTable.svelte';
+  import Count from '#lib/kb/ProblemCount.svelte';
+  import Callout from '#lib/kb/Callout.svelte';
+  import RenderStamp from '#lib/kb/RenderStamp.svelte';
+
+  const issues = 'https://github.com/sluvec/mega-s01e03-support-kb/issues';
+  const problems = [
+    { key: 'parser', name: 'shared parser reads dates month first', ticket: `${issues}/1` },
+    { key: 'hint', name: 'booking-v3 form hint says MM/DD/YYYY', ticket: `${issues}/2` },
+    { key: 'one-day', name: 'bookings land one day early', ticket: `${issues}/3` },
+  ];
+</script>
+
+[#4471](/kb/incidents/4471) is marked **known**: one issue, the parser, one fix queued. Read the
+reports instead of their subject lines and it holds <Count ticket={4471} of="problems" /> problems,
+each with its own cause, its own fix and now its own ticket.
+
+<Callout kind="warn">
+Not one issue. The queued parser fix closes the <Count ticket={4471} of="parser" /> parser reports.
+The <Count ticket={4471} of="hint" /> hint reports and the <Count ticket={4471} of="one-day" /> one-day
+reports have a different cause and stay broken after it ships.
+</Callout>
+
+## The problems
+
+<ProblemTable ticket={4471} {problems} />
+
+## What each one is
+
+### `parser`: the shared parser reads dates month first
+
+Every tenant on file writes the day first. The shared parser reads every date month first, so day
+and month swap: a booking for 7 April goes out as 4 July, 2 December becomes 12 February. Reports
+come from every tenant and every way in: app, email and booking-v2 forms. This is the fix #4471
+already queued. Ticket: <a href={problems[0].ticket}>parser</a>.
+
+### `hint`: the booking-v3 form tells people to type the month first
+
+booking-v3 prints `MM/DD/YYYY` under its date field. At a day-first tenant people type what the
+hint says, month first, and the form reads the date the tenant's way, day first. The symptom is the
+same swapped date, so the subject lines match the parser reports, but the code is different: the
+parser fix does not touch it. Only reports that came in through the form of a booking-v3 tenant
+(alder.physio, copper.studio, pale.harbour). The fix is the hint: print the tenant's own order.
+Ticket: <a href={problems[1].ticket}>hint</a>.
+
+### `one-day`: bookings land one day early
+
+Nothing is swapped. Tuesday 12 May shows as Monday 11 May; Tuesday 6 October shows as Monday; a
+client in Lisbon got Tuesday and a client in Toronto got Monday for the same meeting; every booking
+in June is a day off; an invite arrived before the booking was made. A date is being moved across a
+time zone. The desk already read these as a one-day move (`desk-notes.json`), but the cause table
+on #4471 still files them under `parser` by tenant, so they never had a ticket. The parser fix does
+not touch them either. Ticket: <a href={problems[2].ticket}>one-day</a>.
+
+## How the reports were counted
+
+1. **One id, one report.** The ticket export comes in overlapping pages:
+   <Count ticket={4471} of="rows" /> rows, <Count ticket={4471} of="repeats" /> of them repeats,
+   <Count ticket={4471} of="reports" /> reports.
+2. **Cause from the tenant, not from intake.** `causes.ts` decides `parser` or `hint` from the
+   tenant's locale, its booking form and the way the report came in. Intake's tag is a guess from
+   the reporter's browser: it tags every `en-US` browser `hint`, whatever the tenant runs.
+3. **One-day moves on their own.** Reports listed in `desk-notes.json` as a one-day move are the
+   `one-day` problem, wherever their tenant would put them.
+4. **Every report in exactly one problem.** The table checks that the problems add up to the ticket.
+
+All numbers on this page are computed at render time from the same data as the #4471 page
+(`problems.ts`, `ProblemTable`, `ProblemCount`), so they follow the export as the desk adds to it.
+
+## Why they ended up in one ticket
+
+[Decision 0001](/kb/decisions/0001-dedupe-by-subject) merges reports whose subject lines match. All
+the problems produce the same subjects ("Wrong day on the invite", "Month and day swapped?"), so
+the subject cannot tell them apart, and "when unsure, merge" put everything in #4471. Matching on
+cause (`causes.ts`, as the [triage explorer](/kb/triage/dedupe) already does) would have kept them
+apart. That change needs a new decision record from its deciders; 0001 stays as accepted.
+
+<RenderStamp {signature} />

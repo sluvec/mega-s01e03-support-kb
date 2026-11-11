@@ -34,3 +34,19 @@ Support desk. Decision records: whoever signed them.
 ---
 
 Exported 2026-10-04 from the `support` repo, `apps/kb/` → `src/`.
+
+---
+
+## This repo: #4471 split (MEGA.dev S01E03)
+
+The kb export above, plus one new signed page that splits #4471 into the problems it holds.
+Each problem is a GitHub issue in this repo, with how many reports it covers.
+
+- The page: [`src/routes/kb/incidents/4471-split/+page.svx`](src/routes/kb/incidents/4471-split/+page.svx)
+- Its logic: [`src/lib/kb/problems.ts`](src/lib/kb/problems.ts), [`ProblemTable.svelte`](src/lib/kb/ProblemTable.svelte), [`ProblemCount.svelte`](src/lib/kb/ProblemCount.svelte)
+- The page as the desk sees it: [`rendered/kb/incidents/4471-split.html`](rendered/kb/incidents/4471-split.html) (static HTML, styles inlined), screenshot [`rendered/4471-split-screenshot.jpg`](rendered/4471-split-screenshot.jpg)
+- The tickets: [#1 parser](../../issues/1) · [#2 hint](../../issues/2) · [#3 one-day](../../issues/3)
+
+No desk page, decision or data file was changed. Build scaffolding (`package.json`, `vite.config.js`,
+`src/app.html`, `src/routes/+layout.ts`) was added so the export renders: `npm install && npm run build`,
+output in `build/`.
