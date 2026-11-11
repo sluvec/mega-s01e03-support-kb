@@ -10,7 +10,8 @@
 
   const merged = $derived(reportsIn(ticket, reports as Report[]));
   const groups = $derived(groupByProblem(merged, tenantOf));
-  const placed = $derived(groups.reduce((n, g) => n + g.reports.length, 0));
+  const oneDay = $derived(groups.find((g) => g.problem === 'one-day'));
+  const filed = $derived(groups.filter((g) => g.problem !== 'one-day').reduce((n, g) => n + g.reports.length, 0));
   const named = (p: Problem) => problems.find((x) => x.key === p);
   const list = (n: Record<string, number>) =>
     Object.entries(n)
@@ -23,7 +24,7 @@
 <p class="sum">
   <strong>{merged.length}</strong> reports in #{ticket} ·
   <strong>{groups.length}</strong> {groups.length === 1 ? 'problem' : 'problems'} ·
-  every report in exactly one: <strong>{placed === merged.length ? 'yes' : `no, ${merged.length - placed} left over`}</strong>
+  filed by cause: <strong>{filed}</strong>{filed === merged.length ? '' : ` (${merged.length - filed} unfiled)`}
 </p>
 
 <table>
@@ -35,7 +36,7 @@
       {@const n = named(g.problem)}
       <tr class:open={!n?.ticket}>
         <td><code>{g.problem}</code>{#if n}<br /><span class="name">{n.name}</span>{/if}</td>
-        <td><strong>{g.reports.length}</strong></td>
+        <td><strong>{g.reports.length}</strong>{#if g.alsoOneDay}<br /><span class="small">{g.alsoOneDay} also one-day</span>{/if}</td>
         <td title={g.tenants.join(', ')}>{g.tenants.length}</td>
         <td class="small">{list(g.channels)}</td>
         <td class="small">{g.firstSeen} → {g.lastSeen}</td>
@@ -45,6 +46,11 @@
     {/each}
   </tbody>
 </table>
+
+{#if oneDay}
+  <p class="small">Counted the desk's way, as the #{ticket} cause table does: the {oneDay.reports.length} one-day reports stay filed
+  under the cause their tenant gives them and are counted again as <code>one-day</code>.</p>
+{/if}
 
 <style>
   .sum { font-size: 1.05rem; }
