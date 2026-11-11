@@ -5,7 +5,7 @@
   import { tenantOf } from '#lib/kb/locales';
 
   // `problems`: the page's words for each problem and the ticket filed for it.
-  type Named = { key: Problem; name: string; ticket?: string };
+  type Named = { key: Problem; name: string; ticket?: string; state?: string };
   let { ticket, problems = [] }: { ticket: number; problems?: Named[] } = $props();
 
   const merged = $derived(reportsIn(ticket, reports as Report[]));
@@ -29,7 +29,7 @@
 
 <table>
   <thead>
-    <tr><th>problem</th><th>reports</th><th>tenants</th><th>way in</th><th>seen</th><th>intake tagged as</th><th>ticket</th></tr>
+    <tr><th>problem</th><th>reports</th><th>tenants</th><th>way in</th><th>seen</th><th>intake tagged as</th><th>ticket</th><th>state</th></tr>
   </thead>
   <tbody>
     {#each groups as g (g.problem)}
@@ -42,6 +42,7 @@
         <td class="small">{g.firstSeen} → {g.lastSeen}</td>
         <td class="small">{list(g.taggedAs)}</td>
         <td>{#if n?.ticket}<a href={n.ticket}>{ticketLabel(n.ticket)}</a>{:else}no ticket yet{/if}</td>
+        <td class="small">{n?.state ?? 'open'}</td>
       </tr>
     {/each}
   </tbody>

@@ -15,21 +15,22 @@ signature: v1.eyJzdWIiOiIzOTkiLCJhdWQiOiJjaGFsbGVuZ2U6d2hhdC1pdC1zaG93cyIsImlhdC
 
   const issues = 'https://github.com/sluvec/mega-s01e03-support-kb/issues';
   const problems = [
-    { key: 'parser', name: 'shared parser reads dates month first', ticket: `${issues}/1` },
-    { key: 'hint', name: 'booking-v3 form hint says MM/DD/YYYY', ticket: `${issues}/2` },
-    { key: 'one-day', name: 'bookings land one day early', ticket: `${issues}/3` },
+    { key: 'parser', name: 'shared parser reads dates month first', ticket: `${issues}/1`, state: 'fixed · fix(dates): parse dd/mm for eu locales' },
+    { key: 'hint', name: 'booking-v3 form hint says MM/DD/YYYY', ticket: `${issues}/2`, state: "won't fix · booking-v3 form retired" },
+    { key: 'one-day', name: 'bookings land one day early', ticket: `${issues}/3`, state: 'open · no fix yet' },
   ];
 </script>
 
-[#4471](/kb/incidents/4471) is marked **known**: one issue, the parser, one fix queued. Read the
+[#4471](/kb/incidents/4471) was marked **known**: one issue, the parser, one fix queued. Read the
 reports instead of their subject lines and it holds <Count ticket={4471} of="problems" /> problems,
-each with its own cause, its own fix and now its own ticket.
+each with its own cause, its own fix and now its own ticket. Engineering closed #4471 on 5 October
+with the parser fixed and the booking-v3 form retired. The one-day problem was in neither.
 
 <Callout kind="warn">
-Not one issue. The queued parser fix is for the <Count ticket={4471} of="parser" /> reports the desk
-files under <code>parser</code>, and even there the <Count ticket={4471} of="one-day" /> one-day
-moves need a fix of their own. The <Count ticket={4471} of="hint" /> hint reports have a different
-cause and stay broken after it ships.
+#4471 is closed, but not all of it is fixed. The parser fix covers the
+<Count ticket={4471} of="parser" /> reports the desk files under <code>parser</code>, except the
+<Count ticket={4471} of="one-day" /> one-day moves among them: those are a time-zone bug, and their
+ticket stays open. The <Count ticket={4471} of="hint" /> hint reports end with the booking-v3 form.
 </Callout>
 
 ## The problems
@@ -42,8 +43,9 @@ cause and stay broken after it ships.
 
 Every tenant on file writes the day first. The shared parser reads every date month first, so day
 and month swap: a booking for 7 April goes out as 4 July, 2 December becomes 12 February. Reports
-come from every tenant and every way in: app, email and booking-v2 forms. This is the fix #4471
-already queued. Ticket: <a href={problems[0].ticket}>parser</a>.
+come from every tenant and every way in: app, email and booking-v2 forms. Fixed with #4471
+(`fix(dates): parse dd/mm for eu locales`). harbour.dental writes `en-GB`, which is not an EU
+locale: check its bookings after the fix. Ticket: <a href={problems[0].ticket}>parser</a>.
 
 ### `hint`: the booking-v3 form tells people to type the month first
 
@@ -51,7 +53,8 @@ booking-v3 prints `MM/DD/YYYY` under its date field. At a day-first tenant peopl
 hint says, month first, and the form reads the date the tenant's way, day first. The symptom is the
 same swapped date, so the subject lines match the parser reports, but the code is different: the
 parser fix does not touch it. Only reports that came in through the form of a booking-v3 tenant
-(alder.physio, copper.studio, pale.harbour). The fix is the hint: print the tenant's own order.
+(alder.physio, copper.studio, pale.harbour). Won't fix: the booking-v3 form is retired, so these
+stop with it.
 Ticket: <a href={problems[1].ticket}>hint</a>.
 
 ### `one-day`: bookings land one day early
@@ -61,7 +64,8 @@ client in Lisbon got Tuesday and a client in Toronto got Monday for the same mee
 in June is a day off; an invite arrived before the booking was made. A date is being moved across a
 time zone. The desk already read these as a one-day move (`desk-notes.json`), but the cause table
 on #4471 files them under `parser` by tenant and only footnotes them, so they never had a ticket. They
-stay counted there, the desk's way, and are counted again here. The parser fix does not touch them. Ticket: <a href={problems[2].ticket}>one-day</a>.
+stay counted there, the desk's way, and are counted again here. The parser fix does not touch them,
+so this ticket stays open after #4471 closed. Ticket: <a href={problems[2].ticket}>one-day</a>.
 
 ## How the reports were counted
 
